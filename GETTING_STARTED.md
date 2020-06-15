@@ -73,7 +73,6 @@ This command only runs evaluation on the test dataset:
 ```
 python train_net.py \
     --eval-only \
-    --num-gpus 4 \
     --config-file configs/retinanet.yaml \
     MODEL.WEIGHTS /path/to/checkpoint_file  # Path to trained checkpoint
 ```
