@@ -1,0 +1,24 @@
+_BASE_: "./bases/Base-RetinaNet.yaml"
+MODEL:
+  # COCO ResNet50 weights
+  WEIGHTS: "https://dl.fbaipublicfiles.com/detectron2/COCO-Detection/retinanet_R_50_FPN_3x/190397829/model_final_5bd44e.pkl"
+  RESNETS:
+    DEPTH: 50 # ResNet50
+  RETINANET:
+    NUM_CLASSES: 2 # Change to suit own task
+  BACKBONE:
+    FREEZE_AT: 2 # Default 2
+DATASETS:
+  TRAIN: ("benign_train",)
+  TEST: ("benign_test",)
+SOLVER:
+  IMS_PER_BATCH: 16 # Batch size; Default 16
+  BASE_LR: 0.0015
+  STEPS: (60000, 80000) # The iteration number to decrease learning rate by GAMMA.
+  MAX_ITER: 90000 # Number of training steps
+  CHECKPOINT_PERIOD: 2500 # Saves checkpoint every number of steps
+TEST:
+  # The period (in terms of steps) to evaluate the model during training.
+  # Set to 0 to disable.
+  EVAL_PERIOD: 2500
+OUTPUT_DIR: "./output" # Specify output directory
