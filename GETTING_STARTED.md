@@ -2,6 +2,10 @@
 
 # Installation
 ```
+git clone https://github.com/lemonwaffle/detectron2-1.git
+```
+To install Detectron2 and its dependencies:
+```
 pip install -r requirements.txt
 ```
 Or refer to the official [installation instructions](https://github.com/facebookresearch/detectron2/blob/master/INSTALL.md) for Detectron2.
