@@ -33,7 +33,7 @@ from detectron2.engine import (
 from detectron2.evaluation import COCOEvaluator, verify_results
 from detectron2.modeling import GeneralizedRCNNWithTTA
 
-from eiscue.viz import viz_data, viz_preds
+import detectron2_1
 
 
 # Implement evaluation here
@@ -108,7 +108,7 @@ def main(args):
     wandb.init(
         # Use exp name to resume run later on
         id=args.exp_name,
-        project="piplup-od",
+        project="website-od",
         name=args.exp_name,
         sync_tensorboard=True,
         config=config,
@@ -151,8 +151,8 @@ def main(args):
         res = trainer.train()
 
     # TODO: Visualize and log predictions and groundtruth annotations
-    pred_imgs = viz_preds(cfg)
-    wandb.log({"prediction_examples": pred_imgs})
+    # pred_imgs = viz_preds(cfg)
+    # wandb.log({"prediction_examples": pred_imgs})
 
     return res
 
