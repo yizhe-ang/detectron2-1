@@ -4,7 +4,7 @@
 ```
 git clone https://github.com/lemonwaffle/detectron2-1.git
 ```
-To install Detectron2 and its dependencies, refer to the official [installation instructions](https://github.com/facebookresearch/detectron2/blob/master/INSTALL.md) for Detectron2.
+To install Detectron2 and its dependencies, refer to the official [installation instructions](https://github.com/facebookresearch/detectron2/blob/master/INSTALL.md).
 
 # Directory
 Make sure the data files are organized as follows:
@@ -64,7 +64,11 @@ To see all options:
 python train_net.py -h
 ```
 
-# Tensorboard
+# TensorBoard
+Losses and metrics are automatically logged to TensorBoard.
+```
+tensorboard --logdir {path}
+```
 
 
 # Evaluation
