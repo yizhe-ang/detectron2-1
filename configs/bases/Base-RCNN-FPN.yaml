@@ -1,4 +1,4 @@
-MseODEL:
+MODEL:
   META_ARCHITECTURE: "GeneralizedRCNN"
   BACKBONE:
     NAME: "build_resnet_fpn_backbone"
