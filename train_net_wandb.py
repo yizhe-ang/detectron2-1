@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 import detectron2.utils.comm as comm
+import wandb
 import yaml
 from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import get_cfg
@@ -32,7 +33,7 @@ from detectron2.engine import (
 from detectron2.evaluation import COCOEvaluator, verify_results
 from detectron2.modeling import GeneralizedRCNNWithTTA
 
-import detectron2_1
+from eiscue.viz import viz_data, viz_preds
 
 
 # Implement evaluation here
@@ -47,6 +48,7 @@ class Trainer(DefaultTrainer):
         """
         return COCOEvaluator(dataset_name, cfg, False, cfg.OUTPUT_DIR)
 
+    # TODO: Implement TTA
     @classmethod
     def test_with_TTA(cls, cfg, model):
         logger = logging.getLogger("detectron2.trainer")
@@ -86,7 +88,7 @@ def setup(args):
     return cfg
 
 
-def load_yaml(yaml_path: str) -> Dict[str, Any]:
+def load_yaml(yaml_path: Path) -> Dict[str, Any]:
     with open(yaml_path, "r") as file:
         try:
             config = yaml.safe_load(file)
@@ -102,6 +104,25 @@ def main(args):
     # Load cfg as python dict
     config = load_yaml(args.config_file)
 
+    # Setup wandb
+    wandb.init(
+        # Use exp name to resume run later on
+        id=args.exp_name,
+        project="piplup-od",
+        name=args.exp_name,
+        sync_tensorboard=True,
+        config=config,
+        # Resume making use of the same exp name
+        resume=args.exp_name if args.resume else False,
+        # dir=cfg.OUTPUT_DIR,
+    )
+    # Auto upload any checkpoints to wandb as they are written
+    # wandb.save(os.path.join(cfg.OUTPUT_DIR, "*.pth"))
+
+    # TODO: Visualize and log training examples and annotations
+    # training_imgs = viz_data(cfg)
+    # wandb.log({"training_examples": training_imgs})
+
     # If evaluation
     if args.eval_only:
         model = Trainer.build_model(cfg)
@@ -110,6 +131,7 @@ def main(args):
         )
         res = Trainer.test(cfg, model)
 
+        # FIXME: TTA
         if cfg.TEST.AUG.ENABLED:
             res.update(Trainer.test_with_TTA(cfg, model))
         if comm.is_main_process():
@@ -120,12 +142,17 @@ def main(args):
         trainer = Trainer(cfg)
         # Load model weights (if specified)
         trainer.resume_or_load(resume=args.resume)
+        # FIXME: TTA
         if cfg.TEST.AUG.ENABLED:
             trainer.register_hooks(
                 [hooks.EvalHook(0, lambda: trainer.test_with_TTA(cfg, trainer.model))]
             )
         # Will evaluation be done at end of training?
         res = trainer.train()
+
+    # TODO: Visualize and log predictions and groundtruth annotations
+    pred_imgs = viz_preds(cfg)
+    wandb.log({"prediction_examples": pred_imgs})
 
     return res
 
