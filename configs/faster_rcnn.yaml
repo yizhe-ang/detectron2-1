@@ -16,7 +16,7 @@ DATASETS:
   TEST: ("benign_test",)
 SOLVER:
   IMS_PER_BATCH: 16 # Batch size; Default 16
-  BASE_LR: 0.0015
+  BASE_LR: 0.001
   STEPS: (60000, 80000) # The iteration number to decrease learning rate by GAMMA.
   MAX_ITER: 90000 # Number of training iterations
   CHECKPOINT_PERIOD: 2500 # Saves checkpoint every number of steps

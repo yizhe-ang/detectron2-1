@@ -23,17 +23,12 @@ import wandb
 import yaml
 from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import get_cfg
-from detectron2.engine import (
-    DefaultTrainer,
-    default_argument_parser,
-    default_setup,
-    hooks,
-    launch,
-)
+from detectron2.engine import (DefaultTrainer, default_argument_parser,
+                               default_setup, hooks, launch)
 from detectron2.evaluation import COCOEvaluator, verify_results
 from detectron2.modeling import GeneralizedRCNNWithTTA
 
-import detectron2_1
+from detectron2_1.viz import viz_data, viz_preds
 
 
 # Implement evaluation here
@@ -116,12 +111,10 @@ def main(args):
         resume=args.exp_name if args.resume else False,
         # dir=cfg.OUTPUT_DIR,
     )
-    # Auto upload any checkpoints to wandb as they are written
-    # wandb.save(os.path.join(cfg.OUTPUT_DIR, "*.pth"))
 
     # TODO: Visualize and log training examples and annotations
-    # training_imgs = viz_data(cfg)
-    # wandb.log({"training_examples": training_imgs})
+    training_imgs = viz_data(cfg)
+    wandb.log({"training_examples": training_imgs})
 
     # If evaluation
     if args.eval_only:
@@ -151,8 +144,8 @@ def main(args):
         res = trainer.train()
 
     # TODO: Visualize and log predictions and groundtruth annotations
-    # pred_imgs = viz_preds(cfg)
-    # wandb.log({"prediction_examples": pred_imgs})
+    pred_imgs = viz_preds(cfg)
+    wandb.log({"prediction_examples": pred_imgs})
 
     return res
 
