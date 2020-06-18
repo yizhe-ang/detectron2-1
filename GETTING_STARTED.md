@@ -79,7 +79,7 @@ python visualize_data.py \
     --config-file config.yaml \  # Uses dataset specified in cfg.DATASETS.TRAIN
     --source annotation \
     --num-imgs 1000 \  # Num of images to save; don't specify if want to save all
-    --output-dir /path/to/save/images
+    --output-dir /dir/to/save/images
 ```
 
 To visualize annotations of training images after preprocessing/augs:
