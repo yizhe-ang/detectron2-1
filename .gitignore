@@ -1,3 +1,6 @@
+output/
+saved/
+wandb/
 .vscode/
 data
 data/

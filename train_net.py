@@ -22,6 +22,7 @@ import detectron2.utils.comm as comm
 import yaml
 from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import get_cfg
+from detectron2.data import build_detection_train_loader
 from detectron2.engine import (
     DefaultTrainer,
     default_argument_parser,
@@ -32,7 +33,7 @@ from detectron2.engine import (
 from detectron2.evaluation import COCOEvaluator, verify_results
 from detectron2.modeling import GeneralizedRCNNWithTTA
 
-import detectron2_1
+from detectron2_1.datasets import BenignMapper
 
 
 # Implement evaluation here
@@ -63,6 +64,13 @@ class Trainer(DefaultTrainer):
         res = cls.test(cfg, model, evaluators)
         res = OrderedDict({k + "_TTA": v for k, v in res.items()})
         return res
+
+    # Insert custom data loading logic
+    @classmethod
+    def build_train_loader(cls, cfg):
+        return build_detection_train_loader(
+            cfg, mapper=BenignMapper(cfg, is_train=True)
+        )
 
 
 def setup(args):
@@ -133,11 +141,6 @@ def main(args):
 if __name__ == "__main__":
     # Create a parser with some common arguments
     parser = default_argument_parser()
-    # Allow user to specify experiment name
-    parser.add_argument(
-        "--exp-name", help="name of experiment (for output dir and logging)"
-    )
-
     args = parser.parse_args()
 
     print("Command Line Args:", args)

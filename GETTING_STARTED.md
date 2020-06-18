@@ -59,17 +59,53 @@ python train_net.py \
     --config-file configs/retinanet.yaml
 ```
 
+To resume training from a checkpoint (finds last checkpoint from cfg.OUTPUT_DIR)
+```
+python train_net.py \
+    --config-file config.yaml \  # Config file of halted run
+    --resume
+```
+
 To see all options:
 ```
 python train_net.py -h
 ```
 
-# TensorBoard
+# Visualization
+## Training Examples
+To visualize annotations of raw training images:
+```
+python visualize_data.py \
+    --config-file config.yaml \  # Uses dataset specified in cfg.DATASETS.TRAIN
+    --source annotation \
+    --num-imgs 1000 \  # Num of images to save; don't specify if want to save all
+    --output-dir /path/to/save/images
+```
+
+To visualize annotations of training images after preprocessing/augs:
+```
+python visualize_data.py \
+    --config-file config.yaml \  # Uses dataset specified in cfg.DATASETS.TRAIN
+    --source dataloader \
+    --num-imgs 1000 \  # Num of images to save; don't specify if want to save all
+    --output-dir /dir/to/save/images
+```
+
+## Predictions
+To visualize JSON predictions:
+```
+python visualize_json_results.py \
+    --input coco_instances_results.json \  # JSON file produced by model
+    --output /dir/to/save/images \
+    --dataset benign_test \  # Name of dataset
+    --conf-threshold 0.5  # Default 0.5
+```
+
+## Training Curves
 Losses and metrics are automatically logged to TensorBoard.
 ```
 tensorboard --logdir {path}
 ```
-
 
 # Evaluation
 This command only runs evaluation on the test dataset:
@@ -79,3 +115,6 @@ python train_net.py \
     --config-file configs/retinanet.yaml \
     MODEL.WEIGHTS /path/to/checkpoint_file  # Path to trained checkpoint
 ```
+
+# Dataset Details
+29k images

@@ -28,6 +28,8 @@ from fvcore.common.file_io import PathManager
 from PIL import Image
 from tqdm import tqdm
 
+from detectron2_1.datasets import BenignMapper
+
 
 def viz_data(cfg) -> List[wandb.Image]:
     """Returns a sample of the training image examples along with its annotations.
@@ -43,7 +45,9 @@ def viz_data(cfg) -> List[wandb.Image]:
     scale = 0.5
 
     # Grab train dataset and its metadata
-    train_data_loader = build_detection_train_loader(cfg)
+    train_data_loader = build_detection_train_loader(
+        cfg, mapper=BenignMapper(cfg, is_train=True)
+    )
     metadata = MetadataCatalog.get(cfg.DATASETS.TRAIN[0])
 
     batch = next(iter(train_data_loader))

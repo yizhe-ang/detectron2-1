@@ -19,15 +19,22 @@ from pathlib import Path
 from typing import Any, Dict
 
 import detectron2.utils.comm as comm
-import wandb
 import yaml
 from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import get_cfg
-from detectron2.engine import (DefaultTrainer, default_argument_parser,
-                               default_setup, hooks, launch)
+from detectron2.data import build_detection_train_loader
+from detectron2.engine import (
+    DefaultTrainer,
+    default_argument_parser,
+    default_setup,
+    hooks,
+    launch,
+)
 from detectron2.evaluation import COCOEvaluator, verify_results
 from detectron2.modeling import GeneralizedRCNNWithTTA
 
+import wandb
+from detectron2_1.datasets import BenignMapper
 from detectron2_1.viz import viz_data, viz_preds
 
 
@@ -61,6 +68,13 @@ class Trainer(DefaultTrainer):
         res = OrderedDict({k + "_TTA": v for k, v in res.items()})
         return res
 
+    # Insert custom data loading logic
+    @classmethod
+    def build_train_loader(cls, cfg):
+        return build_detection_train_loader(
+            cfg, mapper=BenignMapper(cfg, is_train=True)
+        )
+
 
 def setup(args):
     """
@@ -72,9 +86,6 @@ def setup(args):
     # Can create custom configs fields here too
     cfg.merge_from_list(args.opts)
 
-    # Set output directory
-    cfg.OUTPUT_DIR = f"{cfg.OUTPUT_DIR}/{args.exp_name}"
-    # Create directory if does not exist
     Path(cfg.OUTPUT_DIR).mkdir(exist_ok=True)
 
     cfg.freeze()
