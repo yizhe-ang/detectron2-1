@@ -15,13 +15,16 @@ data_dir = Path("data")
 
 benign_data_dir = data_dir / "benign_data"
 benign_img_dir = benign_data_dir / "benign_database"
+eval_img_dir = benign_data_dir / "eval_imgs"
 
 benign_train_coco_path = benign_data_dir / "coco_train.json"
 benign_test_coco_path = benign_data_dir / "coco_test.json"
+benign_eval_coco_path = benign_data_dir / "coco_eval.json"
 
 # Register benign train and test sets
 register_coco_instances("benign_train", {}, benign_train_coco_path, benign_img_dir)
 register_coco_instances("benign_test", {}, benign_test_coco_path, benign_img_dir)
+register_coco_instances("benign_eval", {}, benign_eval_coco_path, eval_img_dir)
 
 
 def build_transform_gen(cfg, is_train):

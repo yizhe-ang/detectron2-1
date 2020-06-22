@@ -18,7 +18,7 @@ DATALOADER:
   NUM_WORKERS: 0
 SOLVER:
   IMS_PER_BATCH: 12 # Batch size; Default 16
-  BASE_LR: 0.001
+  BASE_LR: 0.0001
   # (2/3, 8/9)
   STEPS: (17000, 22000) # The iteration number to decrease learning rate by GAMMA.
   MAX_ITER: 25000 # Number of training iterations
