@@ -44,10 +44,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="A script that visualizes the json predictions from COCO or LVIS dataset."
     )
-    parser.add_argument("--input", required=True, help="JSON file produced by the model")
+    parser.add_argument(
+        "--input", required=True, help="JSON file produced by the model"
+    )
     parser.add_argument("--output", required=True, help="output directory")
-    parser.add_argument("--dataset", help="name of the dataset", default="coco_2017_val")
-    parser.add_argument("--conf-threshold", default=0.5, type=float, help="confidence threshold")
+    parser.add_argument(
+        "--dataset", help="name of the dataset", default="coco_2017_val"
+    )
+    parser.add_argument(
+        "--conf-threshold", default=0.5, type=float, help="confidence threshold"
+    )
     args = parser.parse_args()
 
     logger = setup_logger()
@@ -77,8 +83,10 @@ if __name__ == "__main__":
 
     os.makedirs(args.output, exist_ok=True)
 
+    i = 0
     for dic in tqdm.tqdm(dicts):
         img = cv2.imread(dic["file_name"], cv2.IMREAD_COLOR)[:, :, ::-1]
+        # FIXME: May have non-unique basenames
         basename = os.path.basename(dic["file_name"])
 
         predictions = create_instances(pred_by_image[dic["image_id"]], img.shape[:2])
@@ -88,5 +96,9 @@ if __name__ == "__main__":
         vis = Visualizer(img, metadata)
         vis_gt = vis.draw_dataset_dict(dic).get_image()
 
+        basename = f'pred_{i}.png'
+
         concat = np.concatenate((vis_pred, vis_gt), axis=1)
         cv2.imwrite(os.path.join(args.output, basename), concat[:, :, ::-1])
+
+        i += 1

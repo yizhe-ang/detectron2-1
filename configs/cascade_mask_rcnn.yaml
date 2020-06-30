@@ -19,11 +19,13 @@ MODEL:
 DATASETS:
   TRAIN: ("benign_train",)
   TEST: ("benign_test",)
+DATALOADER:
+  NUM_WORKERS: 0
 SOLVER:
-  IMS_PER_BATCH: 16 # Batch size; Default 16
-  BASE_LR: 0.0015
-  STEPS: (60000, 80000) # The iteration number to decrease learning rate by GAMMA.
-  MAX_ITER: 90000 # Number of training steps
+  IMS_PER_BATCH: 10 # Batch size; Default 16
+  BASE_LR: 0.0001
+  STEPS: (17000, 22000) # The iteration number to decrease learning rate by GAMMA.
+  MAX_ITER: 25000 # Number of training steps
   CHECKPOINT_PERIOD: 2500 # Saves checkpoint every number of steps
 INPUT:
   MIN_SIZE_TRAIN: (640, 672, 704, 736, 768, 800) # Image input sizes
