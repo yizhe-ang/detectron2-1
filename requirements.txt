@@ -1,4 +1,0 @@
-opencv-python
-cython
-git+https://github.com/lemonwaffle/cocoapi.git#subdirectory=PythonAPI
-git+https://github.com/facebookresearch/detectron2.git
