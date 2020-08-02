@@ -86,7 +86,7 @@ if __name__ == "__main__":
     i = 0
     for dic in tqdm.tqdm(dicts):
         img = cv2.imread(dic["file_name"], cv2.IMREAD_COLOR)[:, :, ::-1]
-        # FIXME: May have non-unique basenames
+        # FIXME May have non-unique basenames
         basename = os.path.basename(dic["file_name"])
 
         predictions = create_instances(pred_by_image[dic["image_id"]], img.shape[:2])

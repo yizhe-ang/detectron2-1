@@ -13,24 +13,24 @@ from PIL import Image
 import detectron2_1
 
 
-def main(args):
+def inference(img_path, config_path, weights_path, output_path, conf_threshold=0.05):
     # Configure weights and confidence threshold
     cfg = get_cfg()
-    cfg.merge_from_file(args.config_path)
-    cfg.MODEL.WEIGHTS = args.weights_path
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = args.conf_threshold
+    cfg.merge_from_file(config_path)
+    cfg.MODEL.WEIGHTS = weights_path
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = conf_threshold
 
     # Initialize model
     predictor = DefaultPredictor(cfg)
 
     # Load image as numpy array
-    im = cv2.imread(args.img_path)
+    im = cv2.imread(img_path)
 
     # Perform inference
     outputs = predictor(im)
 
     # Set dataset categories
-    # FIXME: Specifc to this task
+    # FIXME Specifc to this task
     MetadataCatalog.get(cfg.DATASETS.TRAIN[0]).thing_classes = ["box", "logo"]
 
     # Draw instance predictions
@@ -41,7 +41,7 @@ def main(args):
     pred = out.get_image()
 
     # Save image with instance predictions
-    Image.fromarray(pred).save(args.output_path)
+    Image.fromarray(pred).save(output_path)
 
 
 def get_args():
@@ -65,4 +65,10 @@ def get_args():
 
 if __name__ == "__main__":
     args = get_args()
-    main(args)
+    inference(
+        args.img_path,
+        args.config_path,
+        args.weights_path,
+        args.output_path,
+        args.conf_threshold,
+    )

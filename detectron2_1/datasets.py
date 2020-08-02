@@ -20,11 +20,13 @@ eval_img_dir = benign_data_dir / "eval_imgs"
 benign_train_coco_path = benign_data_dir / "coco_train.json"
 benign_test_coco_path = benign_data_dir / "coco_test.json"
 benign_eval_coco_path = benign_data_dir / "coco_eval.json"
+benign_bet365_coco_path = benign_data_dir / "coco_bet365.json"
 
 # Register benign train and test sets
 register_coco_instances("benign_train", {}, benign_train_coco_path, benign_img_dir)
 register_coco_instances("benign_test", {}, benign_test_coco_path, benign_img_dir)
 register_coco_instances("benign_eval", {}, benign_eval_coco_path, eval_img_dir)
+register_coco_instances("benign_bet365", {}, benign_bet365_coco_path, benign_img_dir)
 
 
 def build_transform_gen(cfg, is_train):
@@ -152,11 +154,12 @@ class BenignMapper:
                 min_box_size=self.proposal_min_box_size,
             )
 
-        if not self.is_train:
-            # USER: Modify this if you want to keep them for some reason.
-            dataset_dict.pop("annotations", None)
-            dataset_dict.pop("sem_seg_file_name", None)
-            return dataset_dict
+        # HACK Keep annotations for test
+        # if not self.is_train:
+        #     # USER: Modify this if you want to keep them for some reason.
+        #     dataset_dict.pop("annotations", None)
+        #     dataset_dict.pop("sem_seg_file_name", None)
+        #     return dataset_dict
 
         if "annotations" in dataset_dict:
             # USER: Modify this if you want to keep them for some reason.

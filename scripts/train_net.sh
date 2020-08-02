@@ -2,10 +2,10 @@
 
 # Training
 CUDA_VISIBLE_DEVICES=0 python train_net_wandb.py \
-    --config-file configs/cascade_mask_rcnn.yaml \
-    --exp-name cascade_resume \
-    MODEL.WEIGHTS output/cascade/model_final.pth \
-    OUTPUT_DIR output/cascade_resume
+    --config-file configs/faster_rcnn_bet365.yaml \
+    --exp-name rcnn_bet365 \
+    MODEL.WEIGHTS output/rcnn_2_resume/model_0004999.pth \
+    OUTPUT_DIR output/rcnn_bet365
 
 # Resume training
 # CUDA_VISIBLE_DEVICES=0 python train_net_wandb.py \
