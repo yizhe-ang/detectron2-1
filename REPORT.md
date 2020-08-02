@@ -107,7 +107,15 @@ Here is a good [Reading List (Nicholas Carlini)](https://nicholas.carlini.com/wr
 If you'll like to refresh your knowledge of deep learning for computer vision and its advanced applications, I recommend [this course](https://web.eecs.umich.edu/~justincj/teaching/eecs498/) by the University of Michigan. It's fairly up-to-date (Fall 2019) and the lecture videos are publicly available.
 
 ### Detectron2
-When working with
+When working with object detection applications, it behoves to be familiar with the COCO dataset format, as it is a common entry point for most frameworks and APIs. I will recommend this tutorial: [Create COCO Annotations From Scratch](https://www.immersivelimit.com/tutorials/create-coco-annotations-from-scratch).
+
+The Detectron2 library can be a bit tricky to get used to, with a lack of community tutorials and a more research-oriented API design. Much of understanding how to tweak the models unfortunately requires a bit of digging into the Detectron2 source code.
+
+That said, you can start with the [Official Detectron2 Documentation](https://detectron2.readthedocs.io/index.html), and this set of tutorials by Hiroto Honda: [Digging into Detectron2](https://medium.com/@hirotoschwert/digging-into-detectron-2-47b2e794fabd).
 
 
 ## References
+1. [Xie et al., 2017] Cihang Xie, Jianyu Wang, Zhishuai Zhang, Yuyin
+Zhou, Lingxi Xie, and Alan Yuille. Adversarial examples for semantic segmentation and object detection. In ICCV. IEEE, 2017.
+2. Official DAG algorithm implementation: https://github.com/cihangxie/DAG
+3. DAG algorithm implementation in PyTorch: https://github.com/IFL-CAMP/dense_adversarial_generation_pytorch
