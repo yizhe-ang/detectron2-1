@@ -30,7 +30,7 @@ To break it down, for each target (object) on the image, it will:
 - Suppress the confidence of the ground-truth class, while
 - Increasing the confidence of the adversarial class
 
-In other words, maximizing this objective will cause every target to be incorrectly predicted as the adversarial label.
+In plain english, maximizing this objective will cause every target to be incorrectly predicted as the adversarial label.
 
 However, singling out the targets on the image to attack (which regions to misclassify) is non-trivial task, and the authors propose utilizing the region proposals from the Region Proposal Network (RPN) of the object detection model as a starting point. In addition, they suggest increasing the Non-maximum Suppression (NMS) threshold of the RPN to 0.9, allowing for a larger or **denser** set of targets to be proposed (hence the name of the algorithm).
 

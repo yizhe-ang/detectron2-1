@@ -1,61 +1,58 @@
 import json
 import os
-import pickle
 import random
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Callable
 
 import cv2
 import detectron2.data.transforms as T
 import numpy as np
 import torch
 from detectron2.checkpoint import DetectionCheckpointer
-from detectron2.data import MetadataCatalog, build_detection_test_loader
+from detectron2.config import CfgNode
+from detectron2.data import DatasetMapper, MetadataCatalog, build_detection_test_loader
 from detectron2.modeling import build_model
 from detectron2.structures import Boxes, pairwise_iou
 from detectron2.utils.visualizer import Visualizer
-from pycocotools.coco import COCO
-from pycocotools.cocoeval import COCOeval
 from torch.nn import functional as F
 from tqdm import tqdm
 
-from detectron2_1.datasets import BenignMapper
-
 
 class DAGAttacker:
-    """
-    Create a simple end-to-end predictor with the given config that runs on
-    single device for a single input image.
-    Compared to using the model directly, this class does the following additions:
-    1. Load checkpoint from `cfg.MODEL.WEIGHTS`.
-    2. Always take BGR image as the input and apply conversion defined by `cfg.INPUT.FORMAT`.
-    3. Apply resizing defined by `cfg.INPUT.{MIN,MAX}_SIZE_TEST`.
-    4. Take one input image and produce a single output, instead of a batch.
-    If you'd like to do anything more fancy, please refer to its source code
-    as examples to build and use the model manually.
-    Attributes:
-        metadata (Metadata): the metadata of the underlying dataset, obtained from
-            cfg.DATASETS.TEST.
-    Examples:
-    ::
-        pred = DefaultPredictor(cfg)
-        inputs = cv2.imread("input.jpg")
-        outputs = pred(inputs)
-    """
+    def __init__(
+        self,
+        cfg: CfgNode,
+        n_iter=150,
+        gamma=0.5,
+        nms_thresh=0.9,
+        mapper: Callable = DatasetMapper,
+    ):
+        """Implements the DAG algorithm
 
-    def __init__(self, cfg, n_iter=150, gamma=0.5, nms_thresh=0.9):
+        Parameters
+        ----------
+        cfg : CfgNode
+            Config object used to train the model
+        n_iter : int, optional
+            Number of iterations to run the algorithm on each image, by default 150
+        gamma : float, optional
+            Perturbation weight, by default 0.5
+        nms_thresh : float, optional
+            NMS threshold of RPN; higher it is, more dense set of proposals, by default 0.9
+        mapper : Callable, optional
+            Can specify own DatasetMapper logic, by default DatasetMapper
+        """
         self.n_iter = n_iter
         self.gamma = gamma
 
         # Modify config
         self.cfg = cfg.clone()  # cfg can be modified by model
         # To generate more dense proposals
-        # self.cfg.MODEL.RPN.IOU_THRESHOLDS = [0.3, 0.9]
         self.cfg.MODEL.RPN.NMS_THRESH = nms_thresh
         self.cfg.MODEL.RPN.POST_NMS_TOPK_TEST = 5000
 
+        # Init model
         self.model = build_model(self.cfg)
         self.model.eval()
-        # self.metadata = MetadataCatalog.get(cfg.DATASETS.TEST[0])
 
         # Load weights
         checkpointer = DetectionCheckpointer(self.model)
@@ -67,22 +64,44 @@ class DAGAttacker:
         self.input_format = cfg.INPUT.FORMAT
         assert self.input_format in ["RGB", "BGR"], self.input_format
 
-        # Init dataloader
-        mapper = BenignMapper(cfg, is_train=False)
+        # Init dataloader on test dataset
+        # mapper = BenignMapper(cfg, is_train=False)
+        dataset_mapper = mapper(cfg, is_train=False)
         self.data_loader = build_detection_test_loader(
-            cfg, cfg.DATASETS.TEST[0], mapper=mapper
+            cfg, cfg.DATASETS.TEST[0], mapper=dataset_mapper
         )
 
         self.device = self.model.device
         self.n_classes = self.cfg.MODEL.ROI_HEADS.NUM_CLASSES
         self.metadata = MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0])
-        # self.metadata.thing_classes = ["box", "logo"]
-        # FIXME
-        self.contiguous_id_to_thing_id = {
-            v: k for k, v in self.metadata.thing_dataset_id_to_contiguous_id.items()
-        }
+        # HACK Only specific for this dataset
+        self.metadata.thing_classes = ["box", "logo"]
+        # self.contiguous_id_to_thing_id = {
+        #     v: k for k, v in self.metadata.thing_dataset_id_to_contiguous_id.items()
+        # }
 
-    def run_DAG(self, vis=False):
+    def run_DAG(
+        self,
+        results_save_path="coco_instances_results.json",
+        vis_save_dir=None,
+        vis_conf_thresh=0.5,
+    ):
+        """Runs the DAG algorithm and saves the prediction results.
+
+        Parameters
+        ----------
+        results_save_path : str, optional
+            Path to save the results JSON file, by default "coco_instances_results.json"
+        vis_save_dir : str, optional
+            Directory to save the visualized bbox prediction images
+        vis_conf_thresh : float, optional
+            Confidence threshold for visualized bbox predictions, by default 0.5
+
+        Returns
+        -------
+        Dict[str, Any]
+            Prediction results as a dict
+        """
         # Save predictions in coco format
         coco_instances_results = []
 
@@ -106,16 +125,14 @@ class DAGAttacker:
             outputs = self(perturbed_image)
 
             # Convert to coco predictions format
-            # FIXME See how Detectron does this
             instance_dicts = self._create_instance_dicts(outputs, image_id)
             coco_instances_results.extend(instance_dicts)
 
-            if vis:
+            if vis_save_dir:
                 # Save adv predictions
                 # Set confidence threshold
-                conf_threshold = 0.5
                 instances = outputs["instances"]
-                mask = instances.scores > 0.5
+                mask = instances.scores > vis_conf_thresh
                 instances = instances[mask]
 
                 v = Visualizer(perturbed_image[:, :, ::-1], self.metadata)
@@ -124,7 +141,7 @@ class DAGAttacker:
                 # Save original predictions
                 outputs = self(original_image)
                 instances = outputs["instances"]
-                mask = instances.scores > 0.5
+                mask = instances.scores > vis_conf_thresh
                 instances = instances[mask]
 
                 v = Visualizer(original_image[:, :, ::-1], self.metadata)
@@ -136,14 +153,15 @@ class DAGAttacker:
                 # save_path = os.path.join("saved/adv", basename)
                 # cv2.imwrite(save_path, concat[:, :, ::-1])
 
-                cv2.imwrite(f"saved/adv/{i}.jpg", vis_og[:, :, ::-1])
-                cv2.imwrite(f"saved/adv/{i}_adv.jpg", vis_adv[:, :, ::-1])
-                # print(f"Saved visualization to {save_path}")
+                save_path = os.path.join(vis_save_dir, f"{i}.jpg")
+                save_adv_path = os.path.join(vis_save_dir, f"{i}_adv.jpg")
 
-        with open("test.pkl", "wb") as f:
-            pickle.dump(coco_instances_results, f)
+                cv2.imwrite(save_path, vis_og[:, :, ::-1])
+                cv2.imwrite(save_adv_path, vis_adv[:, :, ::-1])
+                print(f"Saved visualization to {save_path}")
 
-        with open("coco.json", "w") as f:
+        # Save predictions as COCO results json format
+        with open(results_save_path, "w") as f:
             json.dump(coco_instances_results, f)
 
         return coco_instances_results
@@ -267,9 +285,9 @@ class DAGAttacker:
             width = x2 - x1
             height = y2 - y1
 
-            # FIXME
-            # category_id = int(pred_classes[i] + 1)
-            category_id = self.contiguous_id_to_thing_id[pred_classes[i]]
+            # HACK Only specific for this dataset
+            category_id = int(pred_classes[i] + 1)
+            # category_id = self.contiguous_id_to_thing_id[pred_classes[i]]
             score = float(scores[i])
 
             i_dict = {
@@ -357,7 +375,6 @@ class DAGAttacker:
 
         # Get proposal boxes' classification scores
         predictions = self._get_roi_heads_predictions(features, proposal_boxes)
-        # FIXME Do I predict the bbox regression refinements?
         # Scores (softmaxed) for a single image, [n_proposals, n_classes + 1]
         scores = self.model.roi_heads.box_predictor.predict_probs(
             predictions, proposals
@@ -406,9 +423,6 @@ class DAGAttacker:
             filtered_target_boxes, corresponding_class_labels
         """
         n_proposals = len(proposal_boxes)
-        # FIXME
-        # if len(gt_boxes) == 0 or len(proposal_boxes) == 0:
-        #     return Boxes(torch.tensor([])), torch.tensor([])
 
         proposal_gt_ious = pairwise_iou(proposal_boxes, gt_boxes)
 

@@ -116,5 +116,11 @@ python train_net.py \
     MODEL.WEIGHTS /path/to/checkpoint_file  # Path to trained checkpoint
 ```
 
-# Dataset Details
-29k images
+# Run DAG Algorithm
+```
+python run_DAG.py \
+    --cfg-path config.yaml \
+    --weights-path model_final.pth \
+    --results-save-path coco_instances_results.json \
+    --vis-save-dir saved
+```
