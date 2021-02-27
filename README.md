@@ -3,9 +3,7 @@ This repository contains experiments on the generation of Adversarial Examples f
 
 The primary technique used is the Dense Adversary Generation (DAG) algorithm from [Adversarial Examples for Semantic Segmentation and Object Detection (Xie et al., ICCV 2017)](https://arxiv.org/abs/1703.08603), and is implemented on the [Detectron2](https://github.com/facebookresearch/detectron2) framework.
 
-
-- [REPORT.md](REPORT.md)
-    - Report on Adversarial Examples for Object Detection
+Report on Adversarial Examples for Object Detection: [REPORT.md](REPORT.md)
 
 # Installation
 ```
